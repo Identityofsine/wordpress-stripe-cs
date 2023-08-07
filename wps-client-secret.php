@@ -1,8 +1,9 @@
+<? header("Access-Control-Allow-Origin: *"); ?>
 <?php
 /*
 * Plugin Name:       Stripe Client Secret
 * Description:       Grabs and Returns the Client Secret based on the users transaction.
-* Version:           1.0
+* Version:           1.1
 * Requires at least: 5.2
 * Requires PHP:      7.2
 * Author:            Kevin Erdogan
@@ -25,6 +26,10 @@ require_once('wps-database.php');
 add_action( 'rest_api_init', 'register_endpoint_handler' );
 
 function register_endpoint_handler() {
+	add_action( 'rest_pre_serve_request', function () {
+		header( 'Access-Control-Allow-Headers: Authorization, Content-Type, X-WP-Wpml-Language', true );
+		header("Access-Control-Allow-Origin: *");
+	});
 	register_rest_route( 'ih-api', '/client', array(
 		'methods' => 'POST',
 		'callback' => 'endpoint_handler',
