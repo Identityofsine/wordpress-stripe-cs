@@ -10,7 +10,7 @@ function checkWooCommerceAlive () {
 	return in_array( $plugin_path, wp_get_active_and_valid_plugins() ) || in_array( $plugin_path, wp_get_active_network_plugins() );
 }
 
-function queryDatabase($product_ids) {
+function CalculatePrice($product_ids) {
 	if(checkWooCommerceAlive()){
 
 		//convert $product_ids to a string [1,2,3...] to use in the query

@@ -22,7 +22,7 @@
 
 require_once('wps-options.php');
 require_once('stripe-secret.php');
-require_once('wps-database.php');
+// require_once('wps-database.php');
 
 add_action('init', 'endpoint_rewrite');
 
@@ -71,8 +71,10 @@ function endpoint_handler($wp) {
 				//get the client secret
 				// $client_secret = StripePost($post_data, get_option('wps_client_secret'))['client_secret'];
 				
+				// $calculated_price = CalculatePrice($post_data['items']);
+				// var_dump($calculated_price);
+
 				$converted_data = ['amount' => 1000, 'currency' => 'usd', 'payment_method_types' => ['card']];
-	
 				$stripe_secret = get_option('wps_client_secret', false);
 
 
