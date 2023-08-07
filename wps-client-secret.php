@@ -1,8 +1,8 @@
 <? header("Access-Control-Allow-Origin: *"); ?>
 <?php
 /*
-* Plugin Name:       Stripe Client Secret
-* Description:       Grabs and Returns the Client Secret based on the users transaction.
+* Plugin Name:       RESTful Stripe + WooCommerce PaymentIntent
+* Description:       Creates a robust Payment Intent within the server side.
 * Version:           1.1
 * Requires at least: 5.2
 * Requires PHP:      7.2
