@@ -77,7 +77,7 @@ function endpoint_handler($wp) {
 				}
 				
 				//this acts as a return value for both the success and failure cases
-				wp_send_json(['status' => 'success', 'secret' => $client_secret], 200);
+				wp_send_json(['status' => 'success', 'secret' => $client_secret, 'amount' => $calculated_price], 200);
 				exit();
 				
 			} catch (Exception $e) {
