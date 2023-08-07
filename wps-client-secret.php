@@ -58,7 +58,7 @@ function my_custom_endpoint_handler($wp) {
 			//check if the request is valid
 			if (!VerifyRequest($post_data)) {
 				//this acts as a return value for both the success and failure cases
-				wp_send_json(['status' => 'failure', 'message' => 'Invalid Request', 'echo' => $post_data], 401);
+				wp_send_json(['status' => 'failure', 'message' => 'Invalid Request'], 401);
 				exit();
 			}
 

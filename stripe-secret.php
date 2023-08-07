@@ -49,7 +49,6 @@ function VerifyRequest($request) {
 			}
 		}
 	} catch (Exception $e) {
-			echo("Exception : $e");
 			return false;
 	}
 
