@@ -13,48 +13,29 @@
 */
 
 /**
- * add_action is a function that adds a callback function to an action hook. Actions are the hoks that the wordpress core launched at specific points during execution, or when specific events occur. 
- */
+* add_action is a function that adds a callback function to an action hook. Actions are the hoks that the wordpress core launched at specific points during execution, or when specific events occur. 
+*/
 
- if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
-}
 
 require_once('wps-options.php');
 require_once('stripe-secret.php');
 // require_once('wps-database.php');
 
-add_action('init', 'endpoint_rewrite');
+//this adds the function below to the rest_api_init hook
+add_action( 'rest_api_init', 'register_endpoint_handler' );
 
-function endpoint_rewrite() {
-	add_rewrite_rule('^ih-api/([^/]+)/', 'index.php?ih-api=api&param=$matches[1]', 'top');
+function register_endpoint_handler() {
+	register_rest_route( 'ih-api', '/client', array(
+		'methods' => 'POST',
+		'callback' => 'endpoint_handler',
+	) );
 }
-
-
-/**
- * add_fitler is a function that adds a callback function to a filter hook. Filters are the hooks that WordPress launches to modify text of various types before adding it to the database or sending it to the browser screen.
- */
-add_filter('query_vars', 'query_var_setup');
-
-function query_var_setup($query_vars) {
-    $query_vars[] = 'ih-api';
-    return $query_vars;
-}
-
-/*
-* Parse_Request is a Wordpress Hook that parses the request to find the correct WordPress query. For each request it will run through the functions listening on the hook and call one individually. 
-* 
-*/
-
-//this adds the function below to the parse_request hook
-add_action('parse_request', 'endpoint_handler');
-
+//the full url would be : 
 
 function endpoint_handler($wp) {
 	//array_key_exists is simple enough but what is this function doing?
 	//This function is checking if the key 'ih-api' exists in the $wp->query_vars array, which is setup from query_var_setup above
 	//&& &wp->query_vars is a condtional that checks if query_vars even exist
-	if (array_key_exists('ih-api', $wp->query_vars) && $wp->query_vars['ih-api'] === 'client') {
 		// Check the request method, POST, GET, Whatever
 		if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			// Handle the POST request here
@@ -67,22 +48,22 @@ function endpoint_handler($wp) {
 					wp_send_json(['status' => 'failure', 'message' => 'Invalid Request'], 401);
 					exit();
 				}
-	
+				
 				//get the client secret
 				// $client_secret = StripePost($post_data, get_option('wps_client_secret'))['client_secret'];
 				
 				// $calculated_price = CalculatePrice($post_data['items']);
 				// var_dump($calculated_price);
-
+				
 				$converted_data = ['amount' => 1000, 'currency' => 'usd', 'payment_method_types' => ['card']];
 				$stripe_secret = get_option('wps_client_secret', false);
-
-
+				
+				
 				if($stripe_secret === false) {
 					//this acts as a return value for both the success and failure cases
 					throw new Exception('Stripe Secret is not set. Go to your admin page, click on Settings, then Stripe PaymentIntent Settings, and enter your Stripe Secret.');
 				}
-
+				
 				$client_secret = StripePost($converted_data, $stripe_secret);
 				
 				if(isset($client_secret['error'])) {
@@ -95,19 +76,17 @@ function endpoint_handler($wp) {
 				//this acts as a return value for both the success and failure cases
 				wp_send_json(['status' => 'success', 'secret' => $client_secret], 200);
 				exit();
-
+				
 			} catch (Exception $e) {
 				//this acts as a return value for both the success and failure cases
 				wp_send_json(['status' => 'failure', 'message' => 'Something went wrong', 'exception' => $e->getMessage()], 500);
 				exit();
 			}
 		} else {
-
+			
 			//this acts as a return value for both the success and failure cases
 			wp_send_json(['status' => 'success']);
 			exit();
 		}
-	}
 }
-
 ?>
