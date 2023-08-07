@@ -52,22 +52,39 @@ function my_custom_endpoint_handler($wp) {
 		// Check the request method, POST, GET, Whatever
 		if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			// Handle the POST request here
-
-			$raw_data = file_get_contents('php://input');
-			$post_data = ConvertDataToJSON($raw_data)['data'];
-			//check if the request is valid
-			if (!VerifyRequest($post_data)) {
+			try {
+				$raw_data = file_get_contents('php://input');
+				$post_data = ConvertDataToJSON($raw_data)['data'];
+				//check if the request is valid
+				if (!VerifyRequest($post_data)) {
+					//this acts as a return value for both the success and failure cases
+					wp_send_json(['status' => 'failure', 'message' => 'Invalid Request'], 401);
+					exit();
+				}
+	
+				//get the client secret
+				// $client_secret = StripePost($post_data, get_option('wps_client_secret'))['client_secret'];
+				
+				$converted_data = ['amount' => 1000, 'currency' => 'usd', 'payment_method_types' => ['card']];
+	
+				$client_secret = StripePost($converted_data, 'sk_test_51NbWbiLYTLpbXqDTD26oO5DgckN3r6eYt4Ly9gOnSjTY69La2hjfD3gSTADPpwel8qQLRWXoLARvUZPpg7CaGAVK00tgEqspPj');
+				
+				if(isset($client_secret['error'])) {
+					//this acts as a return value for both the success and failure cases
+					throw new Exception($client_secret['error']);
+				} else {
+					$client_secret = $client_secret['client_secret'];
+				}
+				
 				//this acts as a return value for both the success and failure cases
-				wp_send_json(['status' => 'failure', 'message' => 'Invalid Request'], 401);
+				wp_send_json(['status' => 'success', 'secret' => $client_secret], 200);
+				exit();
+
+			} catch (Exception $e) {
+				//this acts as a return value for both the success and failure cases
+				wp_send_json(['status' => 'failure', 'message' => 'Something went wrong', 'exception' => $e->getMessage()], 500);
 				exit();
 			}
-
-			//get the client secret
-			$client_secret = StripePost($post_data);
-
-			//this acts as a return value for both the success and failure cases
-			wp_send_json(['status' => 'success', 'echo' => $post_data]);
-			exit();
 		} else {
 
 			//this acts as a return value for both the success and failure cases

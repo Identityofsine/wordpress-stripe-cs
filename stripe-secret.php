@@ -1,22 +1,23 @@
 <?php
 
 
-function StripePost() {
+function StripePost($post_data, $secret_key) {
 	//payment intent URL
 	$url = 'https://api.stripe.com/v1/payment_intents';
 	
-	$body = ['amount' => 2000, 'currency' => 'usd', 'payment_method_types' => ['card']];
+	$body = $post_data;
+	
 	$body_mutated = http_build_query($body);
 	//create a post request with a body
 	$ch = curl_init($url);
-	curl_setopt($ch, CURLOPT_USERNAME, 'sk_test_51NbWbiLYTLpbXqDTD26oO5DgckN3r6eYt4Ly9gOnSjTY69La2hjfD3gSTADPpwel8qQLRWXoLARvUZPpg7CaGAVK00tgEqspPj');
+	curl_setopt($ch, CURLOPT_USERNAME, $secret_key);
 	curl_setopt($ch, CURLOPT_PASSWORD, '');
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch, CURLOPT_POST, true);
 	curl_setopt($ch, CURLOPT_POSTFIELDS, $body_mutated);
 	curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded', 'Content-Length: ' . strlen($body_mutated)));
 	//send post request
-	
+
 	//convert response to JSON
 	$response = ConvertDataToJSON(curl_exec($ch));
 	try {
