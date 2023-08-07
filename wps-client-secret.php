@@ -54,6 +54,10 @@ function endpoint_handler($wp) {
 				
 				$calculated_price = CalculatePrice([13,14]);
 				
+				if($calculated_price <= 0) {
+					throw new Exception('Price is less than or equal to 0');
+				}
+
 				$converted_data = ['amount' => $calculated_price, 'currency' => 'usd', 'payment_method_types' => ['card']];
 				$stripe_secret = get_option('wps_client_secret', false);
 				
