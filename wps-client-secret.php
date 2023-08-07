@@ -1,46 +1,66 @@
 <?php
 /*
- * Plugin Name:       Stripe Client Secret
- * Description:       Grabs and Returns the Client Secret based on the users transaction.
- * Version:           1.0
- * Requires at least: 5.2
- * Requires PHP:      7.2
- * Author:            Kevin Erdogan
- * Author URI:        https://identityofsine.github.io/
- * License:           GPL v2 or later
- * Text Domain:       stripe-client-secret
- * Domain Path:       /ih-api
+* Plugin Name:       Stripe Client Secret
+* Description:       Grabs and Returns the Client Secret based on the users transaction.
+* Version:           1.0
+* Requires at least: 5.2
+* Requires PHP:      7.2
+* Author:            Kevin Erdogan
+* Author URI:        https://identityofsine.github.io/
+* License:           GPL v2 or later
+* Text Domain:       stripe-client-secret
+* Domain Path:       /ih-api
+*/
+
+/**
+ * add_action is a function that adds a callback function to an action hook. Actions are the hoks that the wordpress core launched at specific points during execution, or when specific events occur. 
  */
 
 add_action('init', 'endpoint_rewrite');
 
 function endpoint_rewrite() {
-	add_rewrite_rule('^ih-api/([^/]+)/?$','index.php?ih-api=$matches[1]','top');
+	add_rewrite_rule('^ih-api/([^/]+)/', 'index.php?ih-api=api&param=$matches[1]', 'top');
 }
 
-// Step 2: Custom Query Variable
-add_filter('query_vars', 'query_vars_function');
 
-function query_vars_function($query_vars) {
-    $query_vars[] = 'ih-api-function';
+/**
+ * add_fitler is a function that adds a callback function to a filter hook. Filters are the hooks that WordPress launches to modify text of various types before adding it to the database or sending it to the browser screen.
+ */
+add_filter('query_vars', 'query_var_setup');
+
+function query_var_setup($query_vars) {
+    $query_vars[] = 'ih-api';
     return $query_vars;
 }
 
-// Step 5: Handle the POST Request
+/*
+* Parse_Request is a Wordpress Hook that parses the request to find the correct WordPress query. For each request it will run through the functions listening on the hook and call one individually. 
+* 
+*/
+
+//this adds the function below to the parse_request hook
 add_action('parse_request', 'my_custom_endpoint_handler');
 
+
 function my_custom_endpoint_handler($wp) {
-    if (array_key_exists('ih-api-function', $wp->query_vars) && $wp->query_vars['ih-api-function'] === 'post_dummy') {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Handle the POST request here
-            // Process the received data and perform the desired actions
-            $received_data = file_get_contents('php://input');
-            // Your data processing and actions code here...
-            // Optionally, send a response back to the requester
-            wp_send_json(['status' => 'success']);
-            exit();
-        }
-    }
+	//array_key_exists is simple enough but what is this function doing?
+	//This function is checking if the key 'ih-api' exists in the $wp->query_vars array, which is setup from query_var_setup above
+	//&& &wp->query_vars is a condtional that checks if query_vars even exist
+	if (array_key_exists('ih-api', $wp->query_vars) && $wp->query_vars['ih-api'] === 'client') {
+		// Check the request method, POST, GET, Whatever
+		if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+			// Handle the POST request here
+
+			//this acts as a return value for both the success and failure cases
+			wp_send_json(['status' => 'success']);
+			exit();
+		} else {
+
+			//this acts as a return value for both the success and failure cases
+			wp_send_json(['status' => 'success']);
+			exit();
+		}
+	}
 }
 
 ?>
