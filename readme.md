@@ -1,6 +1,8 @@
-# Wordpress-Stripe-CS
+# RESTful Stripe + WooCommerce PaymentIntent Plugin
 
-Wordpress Stripe CS is a plugin designed to serve as a bridge between front-end applications (such as React, NextJS, etc.) and a RESTful Wordpress + WooCommerce platform.
+RSWPP is a plugin designed to serve as a bridge between front-end applications (such as React, NextJS, etc.) and a RESTful Wordpress + WooCommerce platform.
+
+This is intended to be used for a headless setup of the Wordpress Monolithic System.
 
 Please note that this plugin **requires WooCommerce** to function properly. It's essential that the tables remain untouched by developers. In the future, a more robust and secure system for querying products will be developed.
 
