@@ -42,17 +42,21 @@ function VerifyRequest($request) {
 		return false;
 	}
 	
-	//loop through possible keys and return false if any are missing
-	foreach ($valid_keys as $key) {
-		if (!isset($request[$key])) {
-			return false;
+	try{
+		//loop through array and check if the keys are valid
+		foreach ($valid_keys as $key) {
+			if (!isset($request[$key])) {
+				return false;
+			}
 		}
+	} catch (Exception $e) {
+		return false;
 	}
-	return true;
 
+	return true;
 }
 
 function ConvertDataToJSON($raw_body) {
-	$json_data = json_decode($raw_body);
+	$json_data = json_decode($raw_body, true);
 	return $json_data;
 }
