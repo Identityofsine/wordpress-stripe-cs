@@ -62,6 +62,9 @@ function my_custom_endpoint_handler($wp) {
 				exit();
 			}
 
+			//get the client secret
+			$client_secret = StripePost($post_data);
+
 			//this acts as a return value for both the success and failure cases
 			wp_send_json(['status' => 'success', 'echo' => $post_data]);
 			exit();
