@@ -15,8 +15,14 @@
 /**
  * add_action is a function that adds a callback function to an action hook. Actions are the hoks that the wordpress core launched at specific points during execution, or when specific events occur. 
  */
+
+ if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly
+}
+
 require_once('wps-options.php');
 require_once('stripe-secret.php');
+require_once('wps-database.php');
 
 add_action('init', 'endpoint_rewrite');
 
