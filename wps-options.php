@@ -1,13 +1,20 @@
 <?php
 
 // Create the options/settings page
-function my_plugin_options_page() {
+function create_options_page() {
     add_options_page(
-        'My Plugin Settings', // Page title
-        'My Plugin', // Menu title
+        'Stripe PaymentIntent Settings', // Page title
+        'Stripe PaymentIntent', // Menu title
         'manage_options', // Capability required to access
-        'my-plugin-settings', // Menu slug
-        'my_plugin_render_settings' // Callback function to render the settings page
+        'wps_client_secret-settings', // Menu slug
+        'wps_client_secret_render_settings' // Callback function to render the settings page
     );
 }
-add_action('admin_menu', 'my_plugin_options_page');
+add_action('admin_menu', 'create_options_page');
+
+function wps_client_secret_render_settings() {
+		?>
+		<h2>Stripe PaymentIntent Settings</h2>
+
+		<?php
+}

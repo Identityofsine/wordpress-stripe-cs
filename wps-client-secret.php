@@ -15,6 +15,7 @@
 /**
  * add_action is a function that adds a callback function to an action hook. Actions are the hoks that the wordpress core launched at specific points during execution, or when specific events occur. 
  */
+require_once('wps-options.php');
 
 add_action('init', 'endpoint_rewrite');
 
