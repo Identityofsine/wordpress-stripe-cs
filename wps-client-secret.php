@@ -52,7 +52,7 @@ function endpoint_handler($wp) {
 				//get the client secret
 				// $client_secret = StripePost($post_data, get_option('wps_client_secret'))['client_secret'];
 				
-				$calculated_price = CalculatePrice([13,14]);
+				$calculated_price = CalculatePrice($post_data['items']);
 				
 				if($calculated_price <= 0) {
 					throw new Exception('Price is less than or equal to 0');
