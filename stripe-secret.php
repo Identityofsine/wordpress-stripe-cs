@@ -35,6 +35,20 @@ function StripePost() {
 		*}
  */
 function VerifyRequest($request) {
+	$valid_keys = ['id, items, discount_code, shipping_method, currency'];
+
+	//check if JSON is empty
+	if (empty($request)) {
+		return false;
+	}
+	
+	//loop through possible keys and return false if any are missing
+	foreach ($valid_keys as $key) {
+		if (!isset($request[$key])) {
+			return false;
+		}
+	}
+	return true;
 
 }
 

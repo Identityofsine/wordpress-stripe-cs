@@ -55,6 +55,12 @@ function my_custom_endpoint_handler($wp) {
 
 			$raw_data = file_get_contents('php://input');
 			$post_data = ConvertDataToJSON($raw_data);
+			//check if the request is valid
+			if (!VerifyRequest($post_data)) {
+				//this acts as a return value for both the success and failure cases
+				wp_send_json(['status' => 'failure', 'message' => 'Invalid Request'], 401);
+				exit();
+			}
 
 			//this acts as a return value for both the success and failure cases
 			wp_send_json(['status' => 'success', 'echo' => $post_data]);
