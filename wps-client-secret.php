@@ -41,10 +41,10 @@ function query_var_setup($query_vars) {
 */
 
 //this adds the function below to the parse_request hook
-add_action('parse_request', 'my_custom_endpoint_handler');
+add_action('parse_request', 'endpoint_handler');
 
 
-function my_custom_endpoint_handler($wp) {
+function endpoint_handler($wp) {
 	//array_key_exists is simple enough but what is this function doing?
 	//This function is checking if the key 'ih-api' exists in the $wp->query_vars array, which is setup from query_var_setup above
 	//&& &wp->query_vars is a condtional that checks if query_vars even exist
@@ -67,7 +67,15 @@ function my_custom_endpoint_handler($wp) {
 				
 				$converted_data = ['amount' => 1000, 'currency' => 'usd', 'payment_method_types' => ['card']];
 	
-				$client_secret = StripePost($converted_data, 'sk_test_51NbWbiLYTLpbXqDTD26oO5DgckN3r6eYt4Ly9gOnSjTY69La2hjfD3gSTADPpwel8qQLRWXoLARvUZPpg7CaGAVK00tgEqspPj');
+				$stripe_secret = get_option('wps_client_secret', false);
+
+
+				if($stripe_secret === false) {
+					//this acts as a return value for both the success and failure cases
+					throw new Exception('Stripe Secret is not set. Go to your admin page, click on Settings, then Stripe PaymentIntent Settings, and enter your Stripe Secret.');
+				}
+
+				$client_secret = StripePost($converted_data, $stripe_secret);
 				
 				if(isset($client_secret['error'])) {
 					//this acts as a return value for both the success and failure cases
