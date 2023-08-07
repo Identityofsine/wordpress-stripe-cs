@@ -16,6 +16,7 @@
  * add_action is a function that adds a callback function to an action hook. Actions are the hoks that the wordpress core launched at specific points during execution, or when specific events occur. 
  */
 require_once('wps-options.php');
+require_once('stripe-secret.php');
 
 add_action('init', 'endpoint_rewrite');
 
@@ -52,8 +53,11 @@ function my_custom_endpoint_handler($wp) {
 		if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			// Handle the POST request here
 
+			$raw_data = file_get_contents('php://input');
+			$post_data = ConvertDataToJSON($raw_data);
+
 			//this acts as a return value for both the success and failure cases
-			wp_send_json(['status' => 'success']);
+			wp_send_json(['status' => 'success', 'echo' => $post_data]);
 			exit();
 		} else {
 

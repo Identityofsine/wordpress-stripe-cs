@@ -35,5 +35,10 @@ function StripePost() {
 		*}
  */
 function VerifyRequest($request) {
-	
+
+}
+
+function ConvertDataToJSON($raw_body) {
+	$json_data = json_decode($raw_body);
+	return $json_data;
 }
