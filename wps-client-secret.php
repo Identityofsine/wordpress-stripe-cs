@@ -62,7 +62,22 @@ function create_paymentintent_endpoint_handler($wp) {
 				//get the client secret
 				// $client_secret = StripePost($post_data, get_option('wps_client_secret'))['client_secret'];
 				
-				$calculated_price = CalculatePrice($post_data['items']);
+				//create array of items --> cast them into Product
+
+				$items = []; //array of Product
+
+				for($i = 0; $i < count($post_data['items']); $i++) {
+					$item = $post_data['items'][$i];
+					
+					if($item['id'] == null || $item['quantity'] == null) {
+						throw new Exception('Item ID or Quantity is null');
+					}
+
+					$product = new Product($item['id'], $item['quantity']);
+					array_push($items, $product);
+				}
+
+				$calculated_price = CalculatePrice($items);
 				
 				if($calculated_price <= 0) {
 					throw new Exception('Price is less than or equal to 0');
