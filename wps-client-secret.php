@@ -81,7 +81,13 @@ function endpoint_handler($wp) {
 					$client_secret = $client_secret['client_secret'];
 				}
 				
-				//this acts as a return value for both the success and failure cases
+				//return 
+				//{
+				//	'status':'success'
+				//	'secret':'pk_client-fasdgasdfg'
+				//	'amount': 1000 : number
+				//	'id': 'pk_sdfafgasdf'	
+				//}
 				wp_send_json(['status' => 'success', 'secret' => $client_secret, 'amount' => $calculated_price], 200);
 				exit();
 				

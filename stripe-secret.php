@@ -26,7 +26,7 @@ function StripePost($post_data, $secret_key) {
 			return ['error' => $response['error']['message']]; //debug -- display error
 		} else {
 			//handle success
-			return ['client_secret' => $response['client_secret'], 'response' => $response]; //debug -- display success
+			return ['client_secret' => $response['client_secret'], 'id' => $response['id'],  'response' => $response]; //debug -- display success
 		}
 	} catch (Exception $e) {
 		//handle exception
