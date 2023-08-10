@@ -17,6 +17,8 @@ function verify_payment_endpoint_handler($data) {
 			throw new Exception($stripe_response['message']);
 		}
 
+		wp_send_json(['status' => 'success', 'completed' => $stripe_response['completed']], 202);
+
 	} catch (Exception $e) {
 		//this acts as a return value for both the success and failure cases
 		wp_send_json(['status' => 'failure', 'message' => $e->getMessage()], 500);
