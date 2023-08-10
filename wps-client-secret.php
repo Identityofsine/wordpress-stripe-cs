@@ -21,6 +21,7 @@
 require_once('wps-options.php');
 require_once('stripe-secret.php');
 require_once('wps-database.php');
+require_once('wps-verify-order.php');
 
 //this adds the function below to the rest_api_init hook
 add_action( 'rest_api_init', 'register_endpoint_handler' );
@@ -30,14 +31,14 @@ function register_endpoint_handler() {
 		header( 'Access-Control-Allow-Headers: Authorization, Content-Type, X-WP-Wpml-Language', true );
 		header("Access-Control-Allow-Origin: *");
 	});
-	register_rest_route( 'ih-api', '/client', array(
+	register_rest_route( 'ih-api', '/create', array(
 		'methods' => 'POST',
-		'callback' => 'endpoint_handler',
+		'callback' => 'create_paymentintent_endpoint_handler',
 	) );
 }
 //the full url would be : 
 
-function endpoint_handler($wp) {
+function create_paymentintent_endpoint_handler($wp) {
 	//array_key_exists is simple enough but what is this function doing?
 	//This function is checking if the key 'ih-api' exists in the $wp->query_vars array, which is setup from query_var_setup above
 	//&& &wp->query_vars is a condtional that checks if query_vars even exist
