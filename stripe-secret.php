@@ -38,6 +38,23 @@ function StripePost($post_data, $secret_key) {
 
 }
 
+function StripeGet($payment_intent_id, $secret_key) {
+	$url = 'https://api.stripe.com/v1/payment_intents';
+	$url.join('/' . $payment_intent_id);
+	//create a post request with a body
+	$ch = curl_init($url);
+	curl_setopt($ch, CURLOPT_USERNAME, $secret_key);
+	curl_setopt($ch, CURLOPT_PASSWORD, '');
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded'));
+	$response = ConvertDataToJSON(curl_exec($ch));
+	try{
+
+	} catch(Exception $e) {
+		return ['error' => 'Something went Wrong', 'message' => $e.p];
+	}
+}
+
 
 /** 
   * @summary This function takes in a JSON Object from the POST Request and verifies that the request is valid. The rules for this are in the obsidean file but as a dropoff:
