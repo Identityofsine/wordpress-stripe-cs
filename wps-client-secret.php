@@ -1,4 +1,3 @@
-<? header("Access-Control-Allow-Origin: *"); ?>
 <?php
 /*
 * Plugin Name:       RESTful Stripe + WooCommerce PaymentIntent
@@ -17,6 +16,7 @@
 * add_action is a function that adds a callback function to an action hook. Actions are the hoks that the wordpress core launched at specific points during execution, or when specific events occur. 
 */
 
+header("Access-Control-Allow-Origin: *");
 
 require_once('wps-options.php');
 require_once('stripe-secret.php');
@@ -31,13 +31,13 @@ function register_endpoint_handler() {
 		header( 'Access-Control-Allow-Headers: Authorization, Content-Type, X-WP-Wpml-Language', true );
 		header("Access-Control-Allow-Origin: *");
 	});
-	register_rest_route( 'ih-api', '/create', array(
+	register_rest_route( 'paymentintent-api', '/create', array(
 		'methods' => 'POST',
 		'callback' => 'create_paymentintent_endpoint_handler',
 	) );
-	register_rest_route( 'ih-api', '/verify', array(
+	register_rest_route( 'paymentintent-api', '/verify', array(
 		'methods' => 'GET',
-		'callback' => 'verify_paymentintent_endpoint_handler',
+		'callback' => 'verify_payment_endpoint_handler',
 	));
 }
 //the full url would be : 

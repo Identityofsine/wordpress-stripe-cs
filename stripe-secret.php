@@ -40,8 +40,12 @@ function StripePost($post_data, $secret_key) {
 
 function StripeGet($payment_intent_id, $secret_key) {
 	$url = 'https://api.stripe.com/v1/payment_intents';
-	$url.join('/' . $payment_intent_id);
-	//create a post request with a body
+
+	//check if $payment_intent_id is empty
+	if(empty($payment_intent_id)) 
+		throw new Exception('Payment Intent ID is required');
+	//join $url with $payment_intent_id.
+	$url = $url . '/' . $payment_intent_id;
 	$ch = curl_init($url);
 	curl_setopt($ch, CURLOPT_USERNAME, $secret_key);
 	curl_setopt($ch, CURLOPT_PASSWORD, '');
@@ -49,9 +53,17 @@ function StripeGet($payment_intent_id, $secret_key) {
 	curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded'));
 	$response = ConvertDataToJSON(curl_exec($ch));
 	try{
-
+		if(isset($response['error'])) {
+			//handle error
+			throw new Exception($response['error']['message']);
+		} else {
+			//handle success
+			$expected_amount = $response['amount'];
+			$received_amount = $response['amount_received'];
+			return ['client_secret' => $response['client_secret'], 'id' => $response['id'],  'completed' => ($expected_amount - $received_amount) <= 0]; //debug -- display success
+		}
 	} catch(Exception $e) {
-		return ['error' => 'Something went Wrong', 'message' => $e.p];
+		return ['error' => 'Something went Wrong', 'message' => $e->getMessage()];
 	}
 }
 
