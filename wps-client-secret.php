@@ -72,13 +72,16 @@ function endpoint_handler($wp) {
 					throw new Exception('Stripe Secret is not set. Go to your admin page, click on Settings, then Stripe PaymentIntent Settings, and enter your Stripe Secret.');
 				}
 				
-				$client_secret = StripePost($converted_data, $stripe_secret);
-				
-				if(isset($client_secret['error'])) {
+				$stripe_response = StripePost($converted_data, $stripe_secret);
+				$paymentintent_id = '';
+				$client_secret = '';
+
+				if(isset($stripe_response['error'])) {
 					//this acts as a return value for both the success and failure cases
-					throw new Exception($client_secret['error']);
+					throw new Exception($stripe_response['error']);
 				} else {
-					$client_secret = $client_secret['client_secret'];
+					$client_secret = $stripe_response['client_secret'];
+					$paymentintent_id = $stripe_response['id'];
 				}
 				
 				//return 
@@ -88,7 +91,7 @@ function endpoint_handler($wp) {
 				//	'amount': 1000 : number
 				//	'id': 'pk_sdfafgasdf'	
 				//}
-				wp_send_json(['status' => 'success', 'secret' => $client_secret, 'amount' => $calculated_price], 200);
+				wp_send_json(['status' => 'success', 'id' => $paymentintent_id, 'secret' => $client_secret, 'amount' => $calculated_price], 200);
 				exit();
 				
 			} catch (Exception $e) {
