@@ -36,7 +36,7 @@ function register_endpoint_handler() {
 		'callback' => 'create_paymentintent_endpoint_handler',
 	) );
 	register_rest_route( 'ih-api', '/verify', array(
-		'methods' => 'POST',
+		'methods' => 'GET',
 		'callback' => 'verify_paymentintent_endpoint_handler',
 	));
 }
