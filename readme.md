@@ -8,6 +8,8 @@ Please note that this plugin **requires WooCommerce** to function properly. It's
 
 This plugin leverages WordPress' REST API to achieve its functionality.
 
+> **PLEASE NOTE**: You must have `php-curl` installed
+
 ## Functionality 
 
 - **Creating PaymentIntents:** Facilitates the creation of PaymentIntents using Stripe's API.
