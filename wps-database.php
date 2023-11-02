@@ -276,7 +276,24 @@ function GetOrderIntent(string $paymentintent_id)
 	$table_name = $wpdb->prefix . 'order_intent';
 
 	try {
-		$statement = $wpdb->prepare("SELECT * FROM $table_name WHERE token = %s", $paymentintent_id);
+		$statement = "SELECT * FROM $table_name WHERE token = '$paymentintent_id';";
+		$result = $wpdb->get_results($statement);
+		if (sizeof($result) == 0) {
+			return false;
+		}
+		return new OrderIntent($result[0]->id, $result[0]->token, ConvertJSONToProductArray($result[0]->products), $result[0]->subtotal);
+	} catch (Exception $e) {
+		throw new Exception('' . $e->getMessage());
+	}
+}
+
+function GetOrderIntentByID(string $id)
+{
+	global $wpdb;
+	$table_name = $wpdb->prefix . 'order_intent';
+
+	try {
+		$statement = $wpdb->prepare("SELECT * FROM $table_name WHERE id = %s", $id);
 		$result = $wpdb->get_results($statement);
 		if (sizeof($result) == 0) {
 			throw new Exception('No order intent found');
