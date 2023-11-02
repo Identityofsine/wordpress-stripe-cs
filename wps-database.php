@@ -1,5 +1,6 @@
 <?php
 
+use PHPMailer\PHPMailer\Exception;
 
 require_once('wps-debug.php');
 
@@ -27,12 +28,13 @@ class Product
 	}
 }
 
-function ConvertProductArrayToJSON(array $products) {
+function ConvertProductArrayToJSON(array $products)
+{
 	try {
 		$product_array = [];
-		for($i = 0; $i < sizeof($products); $i++) {
+		for ($i = 0; $i < sizeof($products); $i++) {
 			$product = $products[$i];
-			if(!($product instanceof Product)) {
+			if (!($product instanceof Product)) {
 				throw new Exception('Product is not of type Product');
 			}
 			$product_id = $product->get_product_id();
@@ -43,6 +45,18 @@ function ConvertProductArrayToJSON(array $products) {
 	} catch (Exception $e) {
 		throw new Exception('Something went wrong...');
 	}
+}
+
+function ConvertJSONToProductArray(string $json): array
+{
+	$product_array = json_decode($json, true);
+	$products = [];
+	foreach ($product_array as $product) {
+		$product_id = $product['id'];
+		$product_quantity = $product['quantity'];
+		array_push($products, new Product($product_id, $product_quantity));
+	}
+	return $products;
 }
 
 
@@ -105,11 +119,12 @@ function CalculatePrice(array $products)
 		subtotal: int,
 	}
 */
-function CreateIntentTable() {
+function CreateIntentTable()
+{
 	global $wpdb;
 	$charset_collate = $wpdb->get_charset_collate();
 	try {
-		$intent_table = $wpdb->prefix ."order_intent";
+		$intent_table = $wpdb->prefix . "order_intent";
 		$statement = "CREATE TABLE IF NOT EXISTS $intent_table (
 			id VARCHAR(255) NOT NULL AUTO INCREMENT,
 			token VARCHAR(255) NOT NULL,
@@ -121,41 +136,98 @@ function CreateIntentTable() {
 		//execute statement
 
 		require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-		dbDelta( $statement );
+		dbDelta($statement);
 		PrintToConsole('Created table');
-
 	} catch (Exception $e) {
 		//print to dev console
 		PrintToConsole('Caught exception: ' . $e->getMessage());
-
 	}
 }
 
-function DropIntentTable() {
+function DropIntentTable()
+{
 	global $wpdb;
 	$charset_collate = $wpdb->get_charset_collate();
 
 	try {
-		$intent_table = $wpdb->prefix .'order_intent';
+		$intent_table = $wpdb->prefix . 'order_intent';
 		$statement = 'DROP TABLE IF EXISTS ' . $intent_table . ';';
-		$wpdb->query( $statement );
+		$wpdb->query($statement);
 		PrintToConsole('Dropped table');
 	} catch (Exception $e) {
-		PrintToConsole(''. $e->getMessage());
+		PrintToConsole('' . $e->getMessage());
 	}
 }
 
-function AddOrderIntent(array $products, string $paymentintent_id) {
+function AddOrderIntent(array $products, string $paymentintent_id)
+{
 	global $wpdb;
-	$table_name = $wpdb->prefix .'order_intent';
+	$table_name = $wpdb->prefix . 'order_intent';
 	try {
 		//generate UUID for id
-		$uuid = random_int(1000,999999).'_id';
+		$uuid = random_int(1000, 999999) . '_id';
 		//cast product to Product class
 		$product_json = ConvertProductArrayToJSON($products);
 		$wpdb->insert($table_name, array('id' => $uuid, 'token' => $paymentintent_id, 'products' => $product_json, 'subtotal' => CalculatePrice($products)));
 		return $uuid;
 	} catch (Exception $e) {
-		throw new Exception(''. $e->getMessage());
+		throw new Exception('' . $e->getMessage());
 	}
 }
+
+
+class OrderIntent
+{
+	private $id;
+	private $token;
+	private $products;
+	private $subtotal;
+
+	//constructor
+	public function __construct(string $id, string $token, array $products, int $subtotal)
+	{
+		$this->id = $id;
+		$this->token = $token;
+		$this->products = $products;
+		$this->subtotal = $subtotal;
+	}
+
+	//getters
+	public function get_id()
+	{
+		return $this->id;
+	}
+
+	public function get_token()
+	{
+		return $this->token;
+	}
+
+	public function get_products()
+	{
+		return $this->products;
+	}
+
+	public function get_subtotal()
+	{
+		return $this->subtotal;
+	}
+}
+
+function GetOrderIntent(string $paymentintent_id)
+{
+	global $wpdb;
+	$table_name = $wpdb->prefix . 'order_intent';
+
+	try {
+		$statement = $wpdb->prepare("SELECT * FROM $table_name WHERE token = %s", $paymentintent_id);
+		$result = $wpdb->get_results($statement);
+		if (sizeof($result) == 0) {
+			throw new Exception('No order intent found');
+		}
+		return new OrderIntent($result[0]->id, $result[0]->token, ConvertJSONToProductArray($result[0]->products), $result[0]->subtotal);
+	} catch (Exception $e) {
+		throw new Exception('' . $e->getMessage());
+	}
+}
+
