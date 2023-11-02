@@ -68,7 +68,13 @@ function ConvertProductArrayToJSON(array $products)
 			}
 			$product_id = $product->get_product_id();
 			$product_quantity = $product->get_quantity();
-			array_push($product_array, array('id' => $product_id, 'quantity' => $product_quantity, 'attributes' => $product->get_attributes()));
+			$product_attributes = [];
+
+			foreach ($product->get_attributes() as $attribute) {
+				array_push($product_attributes, array('name' => $attribute->getName(), 'value' => $attribute->getValue()));
+			};
+
+			array_push($product_array, array('id' => $product_id, 'quantity' => $product_quantity, 'attributes' => $product_attributes));
 		}
 		return json_encode($product_array);
 	} catch (Exception $e) {
@@ -83,7 +89,14 @@ function ConvertJSONToProductArray(string $json): array
 	foreach ($product_array as $product) {
 		$product_id = $product['id'];
 		$product_quantity = $product['quantity'];
-		array_push($products, new Product($product_id, $product_quantity));
+		$json_product_attributes = $product['attributes'];
+		$product_attributes = [];
+		foreach ($json_product_attributes as $attribute) {
+			$product_attribute = new ProductAttribute($attribute['name'], $attribute['value']);
+			array_push($product_attributes, $product_attribute);
+		}
+
+		array_push($products, new Product($product_id, $product_quantity, $product_attributes));
 	}
 	return $products;
 }
@@ -155,11 +168,11 @@ function CreateIntentTable()
 	try {
 		$intent_table = $wpdb->prefix . "order_intent";
 		$statement = "CREATE TABLE IF NOT EXISTS $intent_table (
-			id VARCHAR(255) NOT NULL AUTO INCREMENT,
+			id VARCHAR(255) NOT NULL,
 			token VARCHAR(255) NOT NULL,
 			products BLOB NOT NULL,
 			subtotal INT NOT NULL,
-			created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+			created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY (id),
 			UNIQUE(id, token)
 		) $charset_collate;";
@@ -172,6 +185,15 @@ function CreateIntentTable()
 		//print to dev console
 		PrintToConsole('Caught exception: ' . $e->getMessage());
 	}
+}
+
+function DoesIntentTableExist(): bool
+{
+	global $wpdb;
+	$intent_table = $wpdb->prefix . 'order_intent';
+	$statement = 'SELECT * FROM ' . $intent_table . ';';
+	$result = $wpdb->query($statement);
+	return $result !== false;
 }
 
 function DropIntentTable()
@@ -193,6 +215,10 @@ function AddOrderIntent(array $products, string $paymentintent_id)
 {
 	global $wpdb;
 	$table_name = $wpdb->prefix . 'order_intent';
+	if (!DoesIntentTableExist()) {
+		CreateIntentTable();
+	}
+
 	try {
 		//generate UUID for id
 		$uuid = random_int(1000, 999999) . '_id';
