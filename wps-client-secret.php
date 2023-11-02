@@ -118,8 +118,7 @@ function create_paymentintent_endpoint_handler($wp) {
 				} else {
 					$client_secret = $stripe_response['client_secret'];
 					$paymentintent_id = $stripe_response['id'];
-					
-
+					AddOrderIntent($items, $paymentintent_id);
 				}
 				
 				//return 

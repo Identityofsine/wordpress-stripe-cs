@@ -127,7 +127,6 @@ function DropIntentTable() {
 
 function AddOrderIntent(array $products, string $paymentintent_id) {
 	global $wpdb;
-	$charset_collate = $wpdb->get_charset_collate();
 	$table_name = $wpdb->prefix .'order_intent';
 	try {
 		//generate UUID for id
@@ -136,5 +135,4 @@ function AddOrderIntent(array $products, string $paymentintent_id) {
 	} catch (Exception $e) {
 		PrintToConsole(''. $e->getMessage());
 	}
-
 }
