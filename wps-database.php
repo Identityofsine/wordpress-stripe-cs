@@ -27,6 +27,26 @@ class Product
 	}
 }
 
+function ConvertProductArrayToJSON(array $products) {
+	try {
+		$product_array = [];
+		for($i = 0; $i < sizeof($products); $i++) {
+			$product = $products[$i];
+			if(!($product instanceof Product)) {
+				throw new Exception('Product is not of type Product');
+			}
+			$product_id = $product->get_product_id();
+			$product_quantity = $product->get_quantity();
+			array_push($product_array, array('id' => $product_id, 'quantity' => $product_quantity));
+		}
+		return json_encode($product_array);
+	} catch (Exception $e) {
+		throw new Exception('Something went wrong...');
+	}
+}
+
+
+
 
 function CalculatePrice(array $products)
 {
@@ -91,7 +111,7 @@ function CreateIntentTable() {
 	try {
 		$intent_table = $wpdb->prefix ."order_intent";
 		$statement = "CREATE TABLE IF NOT EXISTS $intent_table (
-			id VARCHAR(255) NOT NULL,
+			id VARCHAR(255) NOT NULL AUTO INCREMENT,
 			token VARCHAR(255) NOT NULL,
 			products BLOB NOT NULL,
 			subtotal INT NOT NULL,
@@ -130,9 +150,12 @@ function AddOrderIntent(array $products, string $paymentintent_id) {
 	$table_name = $wpdb->prefix .'order_intent';
 	try {
 		//generate UUID for id
-		$uuid = '23412';
-		$wpdb->insert($table_name, array('token' => $paymentintent_id, 'products' => json_encode($products), 'subtotal' => CalculatePrice($products)));
+		$uuid = random_int(1000,999999).'_id';
+		//cast product to Product class
+		$product_json = ConvertProductArrayToJSON($products);
+		$wpdb->insert($table_name, array('id' => $uuid, 'token' => $paymentintent_id, 'products' => $product_json, 'subtotal' => CalculatePrice($products)));
+		return $uuid;
 	} catch (Exception $e) {
-		PrintToConsole(''. $e->getMessage());
+		throw new Exception(''. $e->getMessage());
 	}
 }

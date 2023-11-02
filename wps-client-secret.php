@@ -111,6 +111,7 @@ function create_paymentintent_endpoint_handler($wp) {
 				$stripe_response = StripePost($converted_data, $stripe_secret);
 				$paymentintent_id = '';
 				$client_secret = '';
+				$orderintent_id = '';
 
 				if(isset($stripe_response['error'])) {
 					//this acts as a return value for both the success and failure cases
@@ -118,7 +119,7 @@ function create_paymentintent_endpoint_handler($wp) {
 				} else {
 					$client_secret = $stripe_response['client_secret'];
 					$paymentintent_id = $stripe_response['id'];
-					AddOrderIntent($items, $paymentintent_id);
+					$orderintent_id = AddOrderIntent($items, $paymentintent_id);
 				}
 				
 				//return 
@@ -128,7 +129,7 @@ function create_paymentintent_endpoint_handler($wp) {
 				//	'amount': 1000 : number
 				//	'id': 'pk_sdfafgasdf'	
 				//}
-				wp_send_json(['status' => 'success', 'id' => $paymentintent_id, 'secret' => $client_secret, 'amount' => $calculated_price], 200);
+				wp_send_json(['status' => 'success', 'order_id' => $orderintent_id, 'id' => $paymentintent_id, 'secret' => $client_secret, 'amount' => $calculated_price], 200);
 				exit();
 				
 			} catch (Exception $e) {
