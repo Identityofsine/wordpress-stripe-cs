@@ -19,9 +19,25 @@
 header("Access-Control-Allow-Origin: *");
 
 require_once('wps-options.php');
+require_once('wps-debug.php');
 require_once('stripe-secret.php');
 require_once('wps-database.php');
 require_once('wps-verify-order.php');
+
+
+
+function wps_stripe_database_install() {
+	//this function runs when wordpress installs/loads this plugin
+	//init database table
+	CreateIntentTable();
+}
+
+function wps_stripe_database_uninstall() {
+	DropIntentTable();
+}
+
+register_activation_hook( __FILE__, 'wps_stripe_database_install' );
+register_uninstall_hook( __FILE__, 'wps_stripe_database_uninstall' );
 
 //this adds the function below to the rest_api_init hook
 add_action( 'rest_api_init', 'register_endpoint_handler' );
@@ -102,6 +118,8 @@ function create_paymentintent_endpoint_handler($wp) {
 				} else {
 					$client_secret = $stripe_response['client_secret'];
 					$paymentintent_id = $stripe_response['id'];
+					
+
 				}
 				
 				//return 

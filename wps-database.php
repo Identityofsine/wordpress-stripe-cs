@@ -1,6 +1,7 @@
 <?php
 
 
+require_once('wps-debug.php');
 
 
 class Product
@@ -63,3 +64,77 @@ function CalculatePrice(array $products)
 	}
 }
 
+
+//create a table that stores
+/*
+	{
+		id: UUID,
+		token: UUID,
+		products: [
+			{
+				product_id: int,
+				attributes: [
+					{
+						name: string,
+						value: string
+					}
+				],
+				quantity: int
+			}
+		],
+		subtotal: int,
+	}
+*/
+function CreateIntentTable() {
+	global $wpdb;
+	$charset_collate = $wpdb->get_charset_collate();
+	try {
+		$intent_table = $wpdb->prefix ."order_intent";
+		$statement = "CREATE TABLE IF NOT EXISTS $intent_table (
+			id VARCHAR(255) NOT NULL,
+			token VARCHAR(255) NOT NULL,
+			products BLOB NOT NULL,
+			subtotal INT NOT NULL,
+			PRIMARY KEY (id),
+			UNIQUE(id, token)
+		) $charset_collate;";
+		//execute statement
+
+		require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+		dbDelta( $statement );
+		PrintToConsole('Created table');
+
+	} catch (Exception $e) {
+		//print to dev console
+		PrintToConsole('Caught exception: ' . $e->getMessage());
+
+	}
+}
+
+function DropIntentTable() {
+	global $wpdb;
+	$charset_collate = $wpdb->get_charset_collate();
+
+	try {
+		$intent_table = $wpdb->prefix .'order_intent';
+		$statement = 'DROP TABLE IF EXISTS ' . $intent_table . ';';
+		$wpdb->query( $statement );
+		PrintToConsole('Dropped table');
+	} catch (Exception $e) {
+		PrintToConsole(''. $e->getMessage());
+	}
+}
+
+function AddOrderIntent(array $products, string $paymentintent_id) {
+	global $wpdb;
+	$charset_collate = $wpdb->get_charset_collate();
+	$table_name = $wpdb->prefix .'order_intent';
+	try {
+		//generate UUID for id
+		$uuid = '23412';
+		$wpdb->insert($table_name, array('token' => $paymentintent_id, 'products' => json_encode($products), 'subtotal' => CalculatePrice($products)));
+	} catch (Exception $e) {
+		PrintToConsole(''. $e->getMessage());
+	}
+
+}
