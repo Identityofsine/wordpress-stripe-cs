@@ -5,15 +5,39 @@ use PHPMailer\PHPMailer\Exception;
 require_once('wps-debug.php');
 
 
+class ProductAttribute
+{
+	private $name;
+	private $value;
+
+	public function __construct(string $name, string $value)
+	{
+		$this->name = $name;
+		$this->value = $value;
+	}
+
+	public function getName()
+	{
+		return $this->name;
+	}
+
+	public function getValue()
+	{
+		return $this->value;
+	}
+}
+
 class Product
 {
 	private $product_id;
 	private $quantity;
+	private $attributes;
 
-	public function __construct(int $product_id = 0, int $quantity = 0)
+	public function __construct(int $product_id = 0, int $quantity = 0, array $attributes = [])
 	{
 		$this->product_id = $product_id;
 		$this->quantity = $quantity;
+		$this->attributes = $attributes;
 	}
 
 	// Getters
@@ -25,6 +49,11 @@ class Product
 	public function get_quantity()
 	{
 		return $this->quantity;
+	}
+
+	public function get_attributes()
+	{
+		return $this->attributes;
 	}
 }
 
@@ -39,7 +68,7 @@ function ConvertProductArrayToJSON(array $products)
 			}
 			$product_id = $product->get_product_id();
 			$product_quantity = $product->get_quantity();
-			array_push($product_array, array('id' => $product_id, 'quantity' => $product_quantity));
+			array_push($product_array, array('id' => $product_id, 'quantity' => $product_quantity, 'attributes' => $product->get_attributes()));
 		}
 		return json_encode($product_array);
 	} catch (Exception $e) {
@@ -130,6 +159,7 @@ function CreateIntentTable()
 			token VARCHAR(255) NOT NULL,
 			products BLOB NOT NULL,
 			subtotal INT NOT NULL,
+			created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
 			PRIMARY KEY (id),
 			UNIQUE(id, token)
 		) $charset_collate;";
