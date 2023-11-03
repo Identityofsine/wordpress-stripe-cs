@@ -66,16 +66,18 @@ function wps_wc_submit_order_post($wc_consumer_key, $wc_consumer_secret, $produc
 	//post code	
 	try {
 
-		$purchase_method = $post_data['purchase_method'];
-		$purchase_method_title = $post_data['purchase_method_title'];
-		$shipping_method = json_encode($post_data['shipping_lines']);
-		$billing = json_encode($post_data['billing']);
-		$shipping = json_encode($post_data['shipping']);
-		$line_items = json_encode(CastProductToLineItem($products)); //mutate this into a line_item object
+		$purchase_method = 'stripe';
+		$purchase_method_title = 'Stripe';
+		$shipping_method = ($post_data['shipping_lines']);
+		$billing = ($post_data['billing']);
+		$shipping = ($post_data['shipping']);
+		$product_line_item = [];
+		for ($i = 0; $i < count($products); $i++) {
+			$product_line_item[$i] = CastProductToLineItem($products[$i]);
+		}
 		$paid = true;
 		//set post request to another wordpress plugin
 		//endpoint : wp-json/wc/v3/orders
-
 		$post_object = array(
 			"payment_method" => $purchase_method,
 			"payment_method_title" => $purchase_method_title,
@@ -85,17 +87,31 @@ function wps_wc_submit_order_post($wc_consumer_key, $wc_consumer_secret, $produc
 			"line_items" => $line_items,
 			"shipping_lines" => $shipping_method
 		);
+		$json_object = json_encode($post_object);
 
-		var_dump($post_object);
+
+		//authentication with oauth
+
 
 		$base_url = get_site_url();
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, "$base_url/wp-json/wc/v3/orders");
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-		curl_setopt($ch, CURLOPT_POST, 1);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, $post_object);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_POST, true);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $json_object);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+			'Content-Type: application/json',
+			'Content-Length: ' . strlen($json_object),
+			'Authorization: Basic ' . base64_encode($wc_consumer_key . ":" . $wc_consumer_secret)
+		));
+
+		var_dump($wc_consumer_key . ":" . $wc_consumer_secret);
+
 		//execute POST
 		$response = curl_exec($ch);
+
+
+		curl_close($ch);
 
 		return $response;
 	} catch (Exception $e) {
@@ -105,23 +121,29 @@ function wps_wc_submit_order_post($wc_consumer_key, $wc_consumer_secret, $produc
 }
 
 
-function CastProductToLineItem($product)
+function CastProductToLineItem(Product $product)
 {
 	$line_item = [];
-	$line_item['product_id'] = $product['id'] ?? 15;
-	$line_item['quantity'] = $product['quantity'] ?? 1;
+	$line_item['product_id'] = $product->get_product_id() ?? 15;
+	$line_item['quantity'] = $product->get_quantity() ?? 1;
 
 	$meta_data = [];
 
-	if ($product['attributes'] == null) {
+	if ($product->get_attributes() == null) {
 		return $line_item;
 	}
 
-	for ($i = 0; $i < count($product['attributes']); $i++) {
-		$attribute = $product['attributes'][$i];
-		$meta_data[$i]['key'] = $attribute['name'];
-		$meta_data[$i]['value'] = $attribute['value'];
+	$product_attributes = $product->get_attributes();
+
+	for ($i = 0; $i < count($product_attributes); $i++) {
+		$attribute = $product_attributes[$i];
+		$temp_array = array(
+			'key' => $attribute['name'],
+			'value' => $attribute['value']
+		);
+		array_push($meta_data, $temp_array);
 	}
+	$line_item['meta_data'] = $meta_data;
 
 	return $line_item;
 }
