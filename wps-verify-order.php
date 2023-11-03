@@ -35,16 +35,21 @@ function verify_payment_endpoint_handler($data)
 
 		$wc_response = wps_wc_submit_order_post($wc_consumer_key, $wc_consumer_secret, [], $post_data);
 
-		if ($wc_response) {
-			throw new Exception($wc_response);
+		if ($wc_response['status'] === 'failure') {
+			throw new Exception($wc_response['message']);
 		}
+
+		if (!isset($wc_response['id'])) {
+			throw new Exception('Order not found');
+		}
+
 
 		if (!$stripe_response['completed']) {
 			wp_send_json(['status' => 'failure', 'message' => 'Payment not completed'], 202);
 			exit();
 		}
 
-		wp_send_json(['status' => 'success', 'order' => $order_intent, 'completed' => $stripe_response['completed']], 202);
+		wp_send_json(['status' => 'success', 'order' => $wc_response['id'], 'completed' => $stripe_response['completed']], 202);
 	} catch (Exception $e) {
 		//this acts as a return value for both the success and failure cases
 		wp_send_json(['status' => 'failure', 'message' => $e->getMessage()], 500);
@@ -89,11 +94,11 @@ function wps_wc_submit_order_post($wc_consumer_key, $wc_consumer_secret, $produc
 		);
 		$json_object = json_encode($post_object);
 
+		$base_url = get_site_url();
 
 		//authentication with oauth
+		$oauth_header = generateOAuthHeader($wc_consumer_key, $wc_consumer_secret, $base_url . '/wp-json/wc/v3/orders', 'POST', []);
 
-
-		$base_url = get_site_url();
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, "$base_url/wp-json/wc/v3/orders");
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -102,16 +107,22 @@ function wps_wc_submit_order_post($wc_consumer_key, $wc_consumer_secret, $produc
 		curl_setopt($ch, CURLOPT_HTTPHEADER, array(
 			'Content-Type: application/json',
 			'Content-Length: ' . strlen($json_object),
-			'Authorization: Basic ' . base64_encode($wc_consumer_key . ":" . $wc_consumer_secret)
+			'Authorization: ' . $oauth_header
 		));
-
-		var_dump($wc_consumer_key . ":" . $wc_consumer_secret);
 
 		//execute POST
 		$response = curl_exec($ch);
-
-
 		curl_close($ch);
+
+		if ($response === false) {
+			throw new Exception('Curl error: ' . curl_error($ch));
+		}
+
+		//error codes, send back $response['message']
+		$response = json_decode($response, true);
+		if (isset($response['code'])) {
+			throw new Exception($response['message']);
+		}
 
 		return $response;
 	} catch (Exception $e) {
@@ -157,4 +168,45 @@ function isNull(...$args)
 		}
 	}
 	return false;
+}
+
+function generateOAuthHeader($consumerKey, $consumerSecret, $url, $method, $params)
+{
+	// Collect and normalize parameters
+	$oauthParams = [
+		'oauth_consumer_key' => $consumerKey,
+		'oauth_signature_method' => 'HMAC-SHA1',
+		'oauth_timestamp' => time(),
+		'oauth_nonce' => bin2hex(random_bytes(16)),
+		'oauth_version' => '1.0',
+	];
+
+	$params = array_merge($params, $oauthParams);
+	uksort($params, 'strcmp');
+
+	// Create the parameter string
+	$paramString = '';
+	foreach ($params as $key => $value) {
+		$paramString .= rawurlencode($key) . '=' . rawurlencode($value) . '&';
+	}
+	$paramString = rtrim($paramString, '&');
+
+	// Create the signature base string
+	$baseString = strtoupper($method) . '&' . rawurlencode($url) . '&' . rawurlencode($paramString);
+
+	// Generate the signature
+	$signingKey = rawurlencode($consumerSecret) . '&'; // Make sure to include the '&' character
+	$signature = base64_encode(hash_hmac('sha1', $baseString, $signingKey, true));
+
+	// Add the signature to the parameters
+	$params['oauth_signature'] = $signature;
+
+	// Create the OAuth header
+	$oauthHeader = 'OAuth ';
+	foreach ($params as $key => $value) {
+		$oauthHeader .= rawurlencode($key) . '="' . rawurlencode($value) . '", ';
+	}
+	$oauthHeader = rtrim($oauthHeader, ', ');
+
+	return $oauthHeader;
 }
