@@ -55,7 +55,7 @@ function register_endpoint_handler()
 		'callback' => 'create_paymentintent_endpoint_handler',
 	));
 	register_rest_route('paymentintent-api', '/verify', array(
-		'methods' => 'GET',
+		'methods' => 'POST',
 		'callback' => 'verify_payment_endpoint_handler',
 	));
 }

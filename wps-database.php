@@ -172,6 +172,7 @@ function CreateIntentTable()
 			token VARCHAR(255) NOT NULL,
 			products BLOB NOT NULL,
 			subtotal INT NOT NULL,
+			completed BOOLEAN DEFAULT FALSE,
 			created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY (id),
 			UNIQUE(id, token)
