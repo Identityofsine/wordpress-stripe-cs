@@ -305,3 +305,12 @@ function GetOrderIntentByID(string $id)
 	}
 }
 
+function OrderIntentToProduct(OrderIntent $order_intent)
+{
+	$products = $order_intent->get_products();
+	$product_array = [];
+	foreach ($products as $product) {
+		array_push($product_array, array('id' => $product->get_product_id(), 'quantity' => $product->get_quantity()));
+	}
+	return $product_array;
+}

@@ -34,7 +34,9 @@ function verify_payment_endpoint_handler($data)
 			throw new Exception('WooCommerce Consumer Key or Consumer Secret not found');
 		}
 
-		$wc_response = wps_wc_submit_order_post($wc_consumer_key, $wc_consumer_secret, [], $post_data);
+
+		$order_intent = GetOrderIntent($id);
+		$wc_response = wps_wc_submit_order_post($wc_consumer_key, $wc_consumer_secret, $order_intent->get_products(), $post_data);
 
 		if ($wc_response['status'] === 'failure') {
 			throw new Exception($wc_response['message']);
@@ -100,7 +102,6 @@ function wps_wc_submit_order_post($wc_consumer_key, $wc_consumer_secret, $produc
 		//authentication with oauth
 		$oauth_header = generateOAuthHeader($wc_consumer_key, $wc_consumer_secret, $base_url . '/wp-json/wc/v3/orders', 'POST', []);
 
-
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, "$base_url/wp-json/wc/v3/orders");
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -151,8 +152,8 @@ function CastProductToLineItem(Product $product)
 	for ($i = 0; $i < count($product_attributes); $i++) {
 		$attribute = $product_attributes[$i];
 		$temp_array = array(
-			'key' => $attribute['name'],
-			'value' => $attribute['value']
+			'key' => $attribute->getName(),
+			'value' => $attribute->getValue()
 		);
 		array_push($meta_data, $temp_array);
 	}
