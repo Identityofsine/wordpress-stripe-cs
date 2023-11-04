@@ -1,5 +1,6 @@
 <?php
 
+use PHPMailer\PHPMailer\Exception;
 
 require_once('stripe-secret.php');
 require_once('wps-database.php');
@@ -49,7 +50,7 @@ function verify_payment_endpoint_handler($data)
 			exit();
 		}
 
-		wp_send_json(['status' => 'success', 'order' => $wc_response['id'], 'completed' => $stripe_response['completed']], 202);
+		wp_send_json(['status' => 'success', 'order' => $wc_response, 'completed' => $stripe_response['completed']], 202);
 	} catch (Exception $e) {
 		//this acts as a return value for both the success and failure cases
 		wp_send_json(['status' => 'failure', 'message' => $e->getMessage()], 500);
@@ -78,7 +79,7 @@ function wps_wc_submit_order_post($wc_consumer_key, $wc_consumer_secret, $produc
 		$shipping = ($post_data['shipping']);
 		$product_line_item = [];
 		for ($i = 0; $i < count($products); $i++) {
-			$product_line_item[$i] = CastProductToLineItem($products[$i]);
+			array_push($product_line_item, CastProductToLineItem($products[$i]));
 		}
 		$paid = true;
 		//set post request to another wordpress plugin
@@ -89,7 +90,7 @@ function wps_wc_submit_order_post($wc_consumer_key, $wc_consumer_secret, $produc
 			"set_paid" => $paid,
 			"billing" => $billing,
 			"shipping" => $shipping,
-			"line_items" => $line_items,
+			"line_items" => $product_line_item,
 			"shipping_lines" => $shipping_method
 		);
 		$json_object = json_encode($post_object);
@@ -98,6 +99,7 @@ function wps_wc_submit_order_post($wc_consumer_key, $wc_consumer_secret, $produc
 
 		//authentication with oauth
 		$oauth_header = generateOAuthHeader($wc_consumer_key, $wc_consumer_secret, $base_url . '/wp-json/wc/v3/orders', 'POST', []);
+
 
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, "$base_url/wp-json/wc/v3/orders");
