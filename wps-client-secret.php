@@ -2,7 +2,7 @@
 /*
 * Plugin Name:       RESTful Stripe + WooCommerce PaymentIntent
 * Description:       Creates a robust Payment Intent within the server side.
-* Version:           2.0
+* Version:           3.0
 * Requires at least: 5.2
 * Requires PHP:      7.2
 * Author:            Kevin Erdogan
@@ -156,4 +156,3 @@ function create_paymentintent_endpoint_handler($wp)
 		exit();
 	}
 }
-
