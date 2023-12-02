@@ -113,8 +113,14 @@ function create_paymentintent_endpoint_handler($wp)
 			}
 
 			$converted_data = ['amount' => $calculated_price, 'currency' => 'usd', 'payment_method_types' => ['card']];
-			$stripe_secret = get_option('wps_client_secret', false);
+			$release = get_option('wps_release_mode', false);
+			$stripe_secret = '';
 
+			if ($release) {
+				$stripe_secret = get_option('wps_release_secret', false);
+			} else {
+				$stripe_secret = get_option('wps_client_secret', false);
+			}
 
 			if ($stripe_secret === false) {
 				//this acts as a return value for both the success and failure cases

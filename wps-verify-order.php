@@ -13,7 +13,17 @@ function verify_payment_endpoint_handler($data)
 	$raw_data = file_get_contents('php://input');
 	$post_data = ConvertDataToJSON($raw_data)['data'];
 	$id = $post_data['order_intent_id'];
-	$stripe_secret = get_option('wps_client_secret', false);
+	$stripe_secret = '';
+	$release = get_option('wps_release_mode', false);
+	if ($release) {
+		$stripe_secret = get_option('wps_release_secret', false);
+	} else {
+		$stripe_secret = get_option('wps_client_secret', false);
+	}
+	if ($stripe_secret === false) {
+		wp_send_json(['status' => 'failure', 'message' => 'Stripe Secret not found'], 500);
+		exit();
+	}
 	try {
 		//call StripeGet : JSON request.
 		$stripe_response = StripeGet($id, $stripe_secret);
