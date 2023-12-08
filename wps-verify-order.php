@@ -13,7 +13,7 @@ function verify_payment_endpoint_handler($data)
 	$raw_data = file_get_contents('php://input');
 	$post_data = ConvertDataToJSON($raw_data)['data'];
 	$id = $post_data['order_intent_id'];
-	$stripe_secret = get_option('wps_client_secret', false);
+	$stripe_secret = getStripeSecretKey();
 	try {
 		//call StripeGet : JSON request.
 		$stripe_response = StripeGet($id, $stripe_secret);

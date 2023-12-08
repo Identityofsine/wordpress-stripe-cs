@@ -113,8 +113,8 @@ function create_paymentintent_endpoint_handler($wp)
 			}
 
 			$converted_data = ['amount' => $calculated_price, 'currency' => 'usd', 'payment_method_types' => ['card']];
-			$stripe_secret = get_option('wps_client_secret', false);
 
+			$stripe_secret = getStripeSecretKey();
 
 			if ($stripe_secret === false) {
 				//this acts as a return value for both the success and failure cases
