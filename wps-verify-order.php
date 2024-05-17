@@ -1,6 +1,5 @@
 <?php
 
-use PHPMailer\PHPMailer\Exception;
 
 require_once('stripe-secret.php');
 require_once('wps-database.php');
