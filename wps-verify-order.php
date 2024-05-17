@@ -17,7 +17,7 @@ function verify_payment_endpoint_handler($data)
 		//call StripeGet : JSON request.
 		$stripe_response = StripeGet($id, $stripe_secret);
 
-		if ($stripe_response['error']) {
+		if(isset($stripe_response['error'])){
 			throw new Exception($stripe_response['message']);
 		}
 
